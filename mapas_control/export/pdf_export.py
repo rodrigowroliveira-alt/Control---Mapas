@@ -38,7 +38,7 @@ def gerar_pdf_comparacao(comparacao: Comparacao, caminho: str) -> None:
     cabecalho2 = ["", "", "", ""]
     for fornecedor in comparacao.fornecedores:
         cabecalho1 += [fornecedor.nome, "", ""]
-        cabecalho2 += ["Qtd.", "Preço Unit.", "Total"]
+        cabecalho2 += ["Qtd.", "Custo Unitário", "Total"]
 
     dados = [cabecalho1, cabecalho2]
     celulas_melhor_valor: list[tuple[int, int]] = []  # (coluna, linha) para SPAN/BACKGROUND

@@ -20,7 +20,12 @@ Regra vigente: um mapa precisa de no mínimo **3 fornecedores cotando** para
 gerar a exportação PDF/XLS de comparação final ou para ser fechado
 (`services/regras.py::MIN_FORNECEDORES_MAPA`).
 
-A estrutura do XLSX exportado (`export/xlsx_export.py`) segue a descrição do
-briefing e ainda está pendente de validação contra o arquivo Excel real da
-empresa (ex.: `QC_195_ALUMÍNIO`) — só o layout de colunas deve mudar quando
-esse arquivo for compartilhado.
+A estrutura do XLSX exportado (`export/xlsx_export.py`) foi validada contra o
+arquivo real da empresa (`Azo_QC_195_ALUMÍNIO_rev4.xlsx`, aba `QC0003`):
+`Item`/`Código`/`Descrição`/`Unidade`/`Qtd. Referência` + bloco `Quant.` /
+`Custo Unitário` / `Total` por fornecedor + `Melhor Valor Unitário` /
+`Melhor Valor Total`. Por decisão de 2026-09-01, ficaram de fora do v1 os
+blocos extras que existem no arquivo real mas pertencem ao controle
+orçamentário do Control, não ao Mapa (ligação com centro de
+custo/insumo/saldo disponível, condições comerciais do vencedor, indexador
+INCC/verba meta) — ver `mapas-codificados-briefing.md`.

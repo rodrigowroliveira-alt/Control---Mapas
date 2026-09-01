@@ -107,9 +107,36 @@ A resposta de um Fornecedor para um Item específico de um Mapa. **A ausência d
   - *Solicitação*: só itens + quantidade de referência, sem preço — para anexar no e-mail pedindo cotação a um fornecedor novo (não é essencial no v1, mas é barato de fazer já que os dados são os mesmos da tela de cadastro de itens).
 - **Exportar XLS**: tabela simples (sem célula mesclada), uma linha por item, colunas repetidas por fornecedor; manter fórmula de total visível na célula (`=quantidade×preço`) para quem for conferir manualmente.
 
+### Estrutura do XLS validada contra arquivo real (2026-09-01)
+
+O layout de colunas foi conferido contra `Azo_QC_195_ALUMÍNIO_rev4.xlsx`
+(aba `QC0003`), o próprio `QC_195_ALUMÍNIO` citado no contexto acima. Ordem
+final: `Item` (nº sequencial) / `Código` / `Descrição` / `Unidade` /
+`Qtd. Referência`, depois um bloco `Quant.` / `Custo Unitário` / `Total`
+por fornecedor, e por fim `Melhor Valor Unitário` / `Melhor Valor Total`
+(menor custo unitário entre quem cotou × quantidade de referência — fica
+em branco se a quantidade de referência ainda não foi medida ou se
+ninguém cotou, mesma regra de "não entra em cálculo, só fica pendente").
+
+O arquivo real confirmou, com dado de produção, os 3 problemas que
+motivaram o projeto: fórmula de "melhor valor" quebrada em uma linha por
+referenciar a coluna errada, descrição colada do lugar errado em 4 linhas
+seguidas, e uma nota manual reportando item duplicado dentro da própria
+proposta de um fornecedor. Também confirmou que "NÃO ORÇADO" é hoje texto
+mesclado entre as 3 colunas do fornecedor — decidiu-se **não** reproduzir
+isso na exportação (mantém célula vazia, decisão já tomada acima).
+
+Ficaram de fora do v1 (ver "Fora de escopo" abaixo) os blocos que o
+arquivo real também tem mas que pertencem ao controle orçamentário do
+Control, não ao Mapa em si: ligação de cada item com centro de
+custo/insumo/saldo orçamentário disponível, condições comerciais do
+fornecedor vencedor (prazo de entrega, condição de pagamento, frete,
+validade da proposta) e indexador INCC/verba meta para atualização
+monetária do orçamento.
+
 ## Fora de escopo no v1
 
-- Qualquer integração com PCP/CCP ou outros módulos do Control — mapa é isolado por enquanto.
+- Qualquer integração com PCP/CCP ou outros módulos do Control — mapa é isolado por enquanto. Isso inclui os blocos de saldo orçamentário/centro de custo/insumo, condições comerciais do vencedor e indexador INCC/verba meta que existem no arquivo Excel real da empresa, mas pertencem ao controle orçamentário, não ao Mapa.
 - Login ou portal para fornecedor preencher a própria cotação.
 - Importação automática de PDF/planilha de proposta recebida (reconhecer itens e preencher cotação sozinho). É uma boa ideia de fase 2 — reduziria exatamente o trabalho manual de digitar cotação item por item — mas não é essencial para validar o v1.
 - Fluxo de aprovação/assinatura do mapa antes de virar contrato (ver pergunta em aberto abaixo).
