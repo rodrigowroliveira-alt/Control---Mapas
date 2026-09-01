@@ -1,13 +1,18 @@
 """Exportação XLS do mapa de comparação.
 
-Layout de colunas validado contra o arquivo real da empresa
+Layout validado contra o arquivo real da empresa
 (Azo_QC_195_ALUMÍNIO_rev4.xlsx, aba "QC0003" — o `QC_195_ALUMÍNIO` citado
-no briefing): Item / Código / Descrição / Unidade / Qtd. Referência,
-depois um bloco Quant./Custo Unitário/Total por fornecedor, e por fim
-Melhor Valor Unitário / Melhor Valor Total. Mesma ordem e nomes de coluna
-do arquivo real — só os blocos fora do escopo do v1 (saldo orçamentário,
-condições comerciais do vencedor, indexador INCC/verba meta) ficam de fora
-por decisão explícita (ver conversa de 2026-09-01).
+no briefing):
+1. Bloco "Dados dos Fornecedores" (nome/contato/telefone/e-mail/cidade/
+   CNPJ) — reproduz a padronização atual da empresa de listar os dados de
+   contato de cada fornecedor acima da tabela de comparação.
+2. Tabela de comparação: Item / Código / Descrição / Unidade /
+   Qtd. Referência, um bloco Quant./Custo Unitário/Total por fornecedor, e
+   por fim Melhor Valor Unitário / Melhor Valor Total.
+
+Os blocos fora do escopo do v1 (saldo orçamentário, condições comerciais
+do vencedor, indexador INCC/verba meta) ficam de fora por decisão
+explícita (ver conversa de 2026-09-01 no briefing).
 
 Regras aplicadas aqui (decisões do briefing, mantidas mesmo onde o arquivo
 real da empresa faz diferente):
@@ -36,13 +41,16 @@ from mapas_control.services.comparacao import Comparacao
 COLUNAS_FIXAS = ["Item", "Código", "Descrição", "Unidade", "Qtd. Referência"]
 COLUNAS_POR_FORNECEDOR = ["Quant.", "Custo Unitário", "Total"]
 COLUNAS_FINAIS = ["Melhor Valor Unitário", "Melhor Valor Total"]
+COLUNAS_DADOS_FORNECEDOR = ["Fornecedor", "Contato", "Telefone", "E-mail", "Cidade", "CNPJ"]
 
 _FONTE_CABECALHO = Font(bold=True)
+_FONTE_TITULO_SECAO = Font(bold=True, size=11)
 _PREENCHIMENTO_CABECALHO = PatternFill("solid", fgColor="D9D9D9")
 _PREENCHIMENTO_MELHOR_VALOR = PatternFill("solid", fgColor="C6EFCE")
-_LINHA_CABECALHO_1 = 2
-_LINHA_CABECALHO_2 = 3
-_PRIMEIRA_LINHA_ITEM = 4
+
+_LINHA_TITULO = 1
+_LINHA_TITULO_DADOS_FORNECEDOR = 3
+_LINHA_CABECALHO_DADOS_FORNECEDOR = 4
 
 
 def gerar_xlsx_comparacao(comparacao: Comparacao) -> Workbook:
@@ -50,50 +58,75 @@ def gerar_xlsx_comparacao(comparacao: Comparacao) -> Workbook:
     ws = wb.active
     ws.title = "Comparação"
 
-    ws.cell(row=1, column=1, value=f"{comparacao.mapa.nome} — Mapa de Concorrência").font = Font(bold=True, size=13)
+    ws.cell(row=_LINHA_TITULO, column=1, value=f"{comparacao.mapa.nome} — Mapa de Concorrência").font = Font(
+        bold=True, size=13
+    )
 
-    _escrever_cabecalho(ws, comparacao)
-    ultima_linha = _escrever_itens(ws, comparacao)
-    _escrever_subtotal(ws, comparacao, ultima_linha)
+    ultima_linha_dados = _escrever_dados_fornecedores(ws, comparacao)
+    linha_cabecalho_1 = ultima_linha_dados + 2
+    linha_cabecalho_2 = linha_cabecalho_1 + 1
+    primeira_linha_item = linha_cabecalho_2 + 1
+
+    _escrever_cabecalho(ws, comparacao, linha_cabecalho_1, linha_cabecalho_2)
+    ultima_linha = _escrever_itens(ws, comparacao, primeira_linha_item)
+    _escrever_subtotal(ws, comparacao, ultima_linha, primeira_linha_item)
     _ajustar_larguras(ws, comparacao)
 
-    ws.freeze_panes = ws.cell(row=_PRIMEIRA_LINHA_ITEM, column=1)
+    ws.freeze_panes = ws.cell(row=primeira_linha_item, column=1)
     return wb
 
 
-def _coluna_final(comparacao: Comparacao) -> int:
-    return len(COLUNAS_FIXAS) + len(comparacao.fornecedores) * len(COLUNAS_POR_FORNECEDOR) + 1
+def _escrever_dados_fornecedores(ws: Worksheet, comparacao: Comparacao) -> int:
+    """Bloco de contato por fornecedor, acima da tabela — padronização já
+    usada pela empresa no arquivo real. Retorna a última linha escrita."""
+    ws.cell(row=_LINHA_TITULO_DADOS_FORNECEDOR, column=1, value="Dados dos Fornecedores").font = _FONTE_TITULO_SECAO
 
-
-def _escrever_cabecalho(ws: Worksheet, comparacao: Comparacao) -> None:
-    for col, titulo in enumerate(COLUNAS_FIXAS, start=1):
-        celula = ws.cell(row=_LINHA_CABECALHO_1, column=col, value=titulo)
+    for col, titulo in enumerate(COLUNAS_DADOS_FORNECEDOR, start=1):
+        celula = ws.cell(row=_LINHA_CABECALHO_DADOS_FORNECEDOR, column=col, value=titulo)
         celula.font = _FONTE_CABECALHO
         celula.fill = _PREENCHIMENTO_CABECALHO
-        ws.cell(row=_LINHA_CABECALHO_2, column=col).fill = _PREENCHIMENTO_CABECALHO
+
+    linha = _LINHA_CABECALHO_DADOS_FORNECEDOR + 1
+    for fornecedor in comparacao.fornecedores:
+        ws.cell(row=linha, column=1, value=fornecedor.nome)
+        ws.cell(row=linha, column=2, value=fornecedor.contato)
+        ws.cell(row=linha, column=3, value=fornecedor.telefone)
+        ws.cell(row=linha, column=4, value=fornecedor.email)
+        ws.cell(row=linha, column=5, value=fornecedor.cidade)
+        ws.cell(row=linha, column=6, value=fornecedor.cnpj)
+        linha += 1
+    return linha - 1
+
+
+def _escrever_cabecalho(ws: Worksheet, comparacao: Comparacao, linha_cabecalho_1: int, linha_cabecalho_2: int) -> None:
+    for col, titulo in enumerate(COLUNAS_FIXAS, start=1):
+        celula = ws.cell(row=linha_cabecalho_1, column=col, value=titulo)
+        celula.font = _FONTE_CABECALHO
+        celula.fill = _PREENCHIMENTO_CABECALHO
+        ws.cell(row=linha_cabecalho_2, column=col).fill = _PREENCHIMENTO_CABECALHO
 
     col = len(COLUNAS_FIXAS) + 1
     for fornecedor in comparacao.fornecedores:
         for i, subtitulo in enumerate(COLUNAS_POR_FORNECEDOR):
-            c1 = ws.cell(row=_LINHA_CABECALHO_1, column=col + i, value=fornecedor.nome if i == 0 else None)
+            c1 = ws.cell(row=linha_cabecalho_1, column=col + i, value=fornecedor.nome if i == 0 else None)
             c1.font = _FONTE_CABECALHO
             c1.fill = _PREENCHIMENTO_CABECALHO
-            c2 = ws.cell(row=_LINHA_CABECALHO_2, column=col + i, value=subtitulo)
+            c2 = ws.cell(row=linha_cabecalho_2, column=col + i, value=subtitulo)
             c2.font = _FONTE_CABECALHO
             c2.fill = _PREENCHIMENTO_CABECALHO
             c2.alignment = Alignment(horizontal="center")
         col += len(COLUNAS_POR_FORNECEDOR)
 
     for i, titulo in enumerate(COLUNAS_FINAIS):
-        celula = ws.cell(row=_LINHA_CABECALHO_1, column=col + i, value=titulo)
+        celula = ws.cell(row=linha_cabecalho_1, column=col + i, value=titulo)
         celula.font = _FONTE_CABECALHO
         celula.fill = _PREENCHIMENTO_CABECALHO
         celula.alignment = Alignment(horizontal="center", wrap_text=True)
-        ws.cell(row=_LINHA_CABECALHO_2, column=col + i).fill = _PREENCHIMENTO_CABECALHO
+        ws.cell(row=linha_cabecalho_2, column=col + i).fill = _PREENCHIMENTO_CABECALHO
 
 
-def _escrever_itens(ws: Worksheet, comparacao: Comparacao) -> int:
-    linha = _PRIMEIRA_LINHA_ITEM
+def _escrever_itens(ws: Worksheet, comparacao: Comparacao, primeira_linha_item: int) -> int:
+    linha = primeira_linha_item
     for numero, linha_comp in enumerate(comparacao.linhas, start=1):
         item = linha_comp.item
         ws.cell(row=linha, column=1, value=numero)
@@ -142,7 +175,7 @@ def _escrever_melhor_valor(ws, linha, col, item, linha_comp, colunas_custo_unita
     # quantidade_referencia vazia => melhor valor total fica em branco, não entra em cálculo (regra do briefing).
 
 
-def _escrever_subtotal(ws: Worksheet, comparacao: Comparacao, ultima_linha_item: int) -> None:
+def _escrever_subtotal(ws: Worksheet, comparacao: Comparacao, ultima_linha_item: int, primeira_linha_item: int) -> None:
     linha_subtotal = ultima_linha_item + 1
     ws.cell(row=linha_subtotal, column=3, value="Subtotal").font = _FONTE_CABECALHO
 
@@ -153,7 +186,7 @@ def _escrever_subtotal(ws: Worksheet, comparacao: Comparacao, ultima_linha_item:
         celula = ws.cell(
             row=linha_subtotal,
             column=col_total,
-            value=f"=SUM({letra_total}{_PRIMEIRA_LINHA_ITEM}:{letra_total}{ultima_linha_item})",
+            value=f"=SUM({letra_total}{primeira_linha_item}:{letra_total}{ultima_linha_item})",
         )
         celula.font = _FONTE_CABECALHO
         celula.number_format = "#,##0.00"
@@ -161,7 +194,10 @@ def _escrever_subtotal(ws: Worksheet, comparacao: Comparacao, ultima_linha_item:
 
 
 def _ajustar_larguras(ws: Worksheet, comparacao: Comparacao) -> None:
-    larguras_fixas = [7, 12, 42, 10, 14]
+    # Larguras conciliam as duas seções que dividem as mesmas colunas: o
+    # bloco "Dados dos Fornecedores" (nomes/e-mails mais longos) e as
+    # colunas fixas da tabela de itens (Item/Código/.../Qtd. Referência).
+    larguras_fixas = [22, 16, 42, 28, 14, 20]
     for i, largura in enumerate(larguras_fixas, start=1):
         ws.column_dimensions[get_column_letter(i)].width = largura
 

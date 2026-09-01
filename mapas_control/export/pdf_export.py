@@ -24,6 +24,36 @@ _COR_CABECALHO = colors.HexColor("#D9D9D9")
 _COR_MELHOR_VALOR = colors.HexColor("#C6EFCE")
 
 
+def _tabela_dados_fornecedores(comparacao: Comparacao) -> Table:
+    """Bloco de contato por fornecedor, acima da comparação — mesma
+    padronização já usada pela empresa no arquivo real."""
+    dados = [["Fornecedor", "Contato", "Telefone", "E-mail", "Cidade", "CNPJ"]]
+    for fornecedor in comparacao.fornecedores:
+        dados.append(
+            [
+                fornecedor.nome,
+                fornecedor.contato or "",
+                fornecedor.telefone or "",
+                fornecedor.email or "",
+                fornecedor.cidade or "",
+                fornecedor.cnpj or "",
+            ]
+        )
+    tabela = Table(dados, colWidths=[4 * cm, 3 * cm, 2.8 * cm, 5.5 * cm, 3 * cm, 3.5 * cm])
+    tabela.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), _COR_CABECALHO),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 7.5),
+                ("GRID", (0, 0), (-1, -1), 0.4, colors.grey),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ]
+        )
+    )
+    return tabela
+
+
 def gerar_pdf_comparacao(comparacao: Comparacao, caminho: str) -> None:
     doc = SimpleDocTemplate(
         caminho,
@@ -101,6 +131,8 @@ def gerar_pdf_comparacao(comparacao: Comparacao, caminho: str) -> None:
             f"{len(comparacao.fornecedores)} fornecedor(es) cotando · melhor valor por item destacado em verde",
             _ESTILO_SUBTITULO,
         ),
+        Spacer(1, 0.3 * cm),
+        _tabela_dados_fornecedores(comparacao),
         Spacer(1, 0.4 * cm),
         tabela,
     ]
