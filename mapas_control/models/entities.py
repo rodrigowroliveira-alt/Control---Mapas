@@ -52,10 +52,20 @@ class Item:
 
 @dataclass
 class Fornecedor:
+    """Cadastro reutilizável entre mapas e obras — editável pelo operador a
+    qualquer momento (ver Repository.atualizar_fornecedor). Campos além de
+    nome/contato/telefone/email vieram do arquivo Excel real da empresa e
+    servem de base para um futuro cadastro/banco de dados de suprimentos."""
+
     nome: str
     contato: Optional[str] = None
     telefone: Optional[str] = None
     email: Optional[str] = None
+    endereco: Optional[str] = None
+    cidade: Optional[str] = None
+    cnpj: Optional[str] = None
+    inscricao_estadual: Optional[str] = None
+    socio: Optional[str] = None
     id: str = field(default_factory=_novo_id)
 
 

@@ -55,7 +55,7 @@ Pertence a um Mapa. É a linha codificada (o que hoje é `AL001`, `GC01A` etc.).
 | quantidade_referencia | number | quantitativo do projeto para aquele item; pode ficar em branco se ainda não medido (não usar texto tipo "—" ou "ver obra" — ver regras abaixo) |
 
 ### Fornecedor
-Cadastro simples, reutilizável entre mapas e obras (empresa que a construtora cota com frequência).
+Cadastro simples, reutilizável entre mapas e obras (empresa que a construtora cota com frequência). Editável pelo operador a qualquer momento — não é só criado uma vez, é corrigido/completado conforme os dados chegam. Campos além de nome/contato/telefone/email vieram do arquivo Excel real e servem de base para um futuro cadastro/banco de dados de suprimentos (decisão de 2026-09-01).
 
 | Campo | Tipo | Observação |
 |---|---|---|
@@ -63,6 +63,11 @@ Cadastro simples, reutilizável entre mapas e obras (empresa que a construtora c
 | nome | string | |
 | contato | string | opcional |
 | telefone / email | string | opcional |
+| endereco | string | opcional |
+| cidade | string | opcional |
+| cnpj | string | opcional, **sem validação de formato/duplicidade no v1** — ver "Perguntas em aberto" |
+| inscricao_estadual | string | opcional |
+| socio | string | opcional |
 
 ### Cotação
 A resposta de um Fornecedor para um Item específico de um Mapa. **A ausência de registro = item não orçado por aquele fornecedor** (não existe estado "NÃO ORÇADO" como texto — é simplesmente a ausência da linha).

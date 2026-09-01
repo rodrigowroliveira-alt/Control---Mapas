@@ -36,7 +36,12 @@ CREATE TABLE IF NOT EXISTS fornecedor (
     nome TEXT NOT NULL,
     contato TEXT,
     telefone TEXT,
-    email TEXT
+    email TEXT,
+    endereco TEXT,
+    cidade TEXT,
+    cnpj TEXT,
+    inscricao_estadual TEXT,
+    socio TEXT
 );
 
 -- Uma cotação por (item, fornecedor): relançar atualiza, não duplica.

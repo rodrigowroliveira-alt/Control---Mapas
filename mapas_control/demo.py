@@ -35,9 +35,16 @@ def main() -> None:
 
     print("Alertas de possível duplicidade:", alertar_possiveis_duplicados(itens) or "nenhum")
 
-    fornecedor_a = repo.criar_fornecedor(Fornecedor(nome="Esquadrias Silva"))
+    fornecedor_a = repo.criar_fornecedor(
+        Fornecedor(nome="Esquadrias Silva", contato="Wilton", telefone="5624-2023", cidade="São Paulo")
+    )
     fornecedor_b = repo.criar_fornecedor(Fornecedor(nome="Alumitech"))
     fornecedor_c = repo.criar_fornecedor(Fornecedor(nome="Vidroforte Alumínio"))
+
+    # Operador completa o cadastro depois, conforme os dados chegam por e-mail.
+    fornecedor_b.cnpj = "12.345.678/0001-90"
+    fornecedor_b.cidade = "Guarulhos"
+    repo.atualizar_fornecedor(fornecedor_b)
 
     # Fornecedor A cota tudo.
     repo.lancar_cotacao(Cotacao(item_id=itens[0].id, fornecedor_id=fornecedor_a.id, quantidade=12, preco_unitario=850.00))

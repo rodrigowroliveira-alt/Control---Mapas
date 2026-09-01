@@ -94,18 +94,73 @@ class Repository:
     # -- Fornecedor ----------------------------------------------------
     def criar_fornecedor(self, fornecedor: Fornecedor) -> Fornecedor:
         self._conn.execute(
-            "INSERT INTO fornecedor (id, nome, contato, telefone, email) VALUES (?, ?, ?, ?, ?)",
-            (fornecedor.id, fornecedor.nome, fornecedor.contato, fornecedor.telefone, fornecedor.email),
+            """INSERT INTO fornecedor
+               (id, nome, contato, telefone, email, endereco, cidade, cnpj, inscricao_estadual, socio)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                fornecedor.id,
+                fornecedor.nome,
+                fornecedor.contato,
+                fornecedor.telefone,
+                fornecedor.email,
+                fornecedor.endereco,
+                fornecedor.cidade,
+                fornecedor.cnpj,
+                fornecedor.inscricao_estadual,
+                fornecedor.socio,
+            ),
         )
         self._conn.commit()
         return fornecedor
 
+    def atualizar_fornecedor(self, fornecedor: Fornecedor) -> Fornecedor:
+        """Edita um fornecedor já cadastrado — o operador que monta o mapa
+        pode corrigir/completar os dados a qualquer momento."""
+        cursor = self._conn.execute(
+            """UPDATE fornecedor SET
+                   nome = ?, contato = ?, telefone = ?, email = ?,
+                   endereco = ?, cidade = ?, cnpj = ?, inscricao_estadual = ?, socio = ?
+               WHERE id = ?""",
+            (
+                fornecedor.nome,
+                fornecedor.contato,
+                fornecedor.telefone,
+                fornecedor.email,
+                fornecedor.endereco,
+                fornecedor.cidade,
+                fornecedor.cnpj,
+                fornecedor.inscricao_estadual,
+                fornecedor.socio,
+                fornecedor.id,
+            ),
+        )
+        if cursor.rowcount == 0:
+            raise ValueError(f"Fornecedor '{fornecedor.id}' não encontrado.")
+        self._conn.commit()
+        return fornecedor
+
+    def buscar_fornecedor(self, fornecedor_id: str) -> Optional[Fornecedor]:
+        row = self._conn.execute("SELECT * FROM fornecedor WHERE id = ?", (fornecedor_id,)).fetchone()
+        return self._fornecedor_de_row(row) if row is not None else None
+
     def listar_fornecedores(self) -> list[Fornecedor]:
         rows = self._conn.execute("SELECT * FROM fornecedor ORDER BY nome").fetchall()
-        return [
-            Fornecedor(id=r["id"], nome=r["nome"], contato=r["contato"], telefone=r["telefone"], email=r["email"])
-            for r in rows
-        ]
+        return [self._fornecedor_de_row(r) for r in rows]
+
+    @staticmethod
+    def _fornecedor_de_row(r: sqlite3.Row) -> Fornecedor:
+        return Fornecedor(
+            id=r["id"],
+            nome=r["nome"],
+            contato=r["contato"],
+            telefone=r["telefone"],
+            email=r["email"],
+            endereco=r["endereco"],
+            cidade=r["cidade"],
+            cnpj=r["cnpj"],
+            inscricao_estadual=r["inscricao_estadual"],
+            socio=r["socio"],
+        )
 
     # -- Cotação -----------------------------------------------------------
     def lancar_cotacao(self, cotacao: Cotacao) -> Cotacao:

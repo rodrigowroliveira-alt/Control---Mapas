@@ -110,3 +110,39 @@ def test_quantidade_referencia_pode_ficar_vazia(repo):
     mapa = _mapa_basico(repo)
     item = repo.adicionar_item(Item(mapa_id=mapa.id, codigo="AL001", descricao="Item ainda não medido", unidade="unid", quantidade_referencia=None))
     assert item.quantidade_referencia is None
+
+
+def test_fornecedor_persiste_campos_de_cadastro(repo):
+    fornecedor = repo.criar_fornecedor(
+        Fornecedor(
+            nome="Alumitech",
+            contato="Wilton",
+            telefone="5624-2023",
+            email="wilton@alumitech.com.br",
+            endereco="Rua André Vidal 14",
+            cidade="São Paulo",
+            cnpj="12.345.678/0001-90",
+            inscricao_estadual="123.456.789.112",
+            socio="Fulano de Tal",
+        )
+    )
+    (encontrado,) = repo.listar_fornecedores()
+    assert encontrado == fornecedor
+
+
+def test_atualizar_fornecedor_edita_cadastro_existente(repo):
+    fornecedor = repo.criar_fornecedor(Fornecedor(nome="Alumitech"))
+
+    fornecedor.cnpj = "12.345.678/0001-90"
+    fornecedor.cidade = "São Paulo"
+    repo.atualizar_fornecedor(fornecedor)
+
+    atualizado = repo.buscar_fornecedor(fornecedor.id)
+    assert atualizado.cnpj == "12.345.678/0001-90"
+    assert atualizado.cidade == "São Paulo"
+
+
+def test_atualizar_fornecedor_inexistente_e_bloqueado(repo):
+    fornecedor = Fornecedor(nome="Não Existe")
+    with pytest.raises(ValueError):
+        repo.atualizar_fornecedor(fornecedor)
