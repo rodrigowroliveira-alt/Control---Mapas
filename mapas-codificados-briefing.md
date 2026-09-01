@@ -86,6 +86,7 @@ A resposta de um Fornecedor para um Item específico de um Mapa. **A ausência d
 - Subtotal por fornecedor num mapa = soma dos totais de todas as cotações daquele fornecedor naquele mapa.
 - "Melhor valor" por item = menor total entre os fornecedores que cotaram aquele item (ignora quem não cotou; não trata ausência como zero).
 - Quantidade de referência do item pode ficar vazia (ainda não medida) — nesse caso não entra em nenhum cálculo de "melhor valor total esperado", só fica sinalizada como pendente na tela.
+- **Mínimo de 3 fornecedores cotando por mapa** (decisão de 2026-09-01, atualiza o v1 original que previa 2). Vale tanto para gerar a exportação PDF/XLS de comparação final quanto para fechar o mapa (status → `fechado`). Um mapa pode ter itens cadastrados e cotações lançadas com menos de 3 fornecedores normalmente — o bloqueio é só na exportação final e no fechamento.
 
 ## Fluxo de uso
 
@@ -131,5 +132,5 @@ Se o Control já tem uma stack definida, usar a mesma por consistência — isso
 - [ ] Criar obra, criar mapa, cadastrar itens com código único (bloqueia duplicado).
 - [ ] Cadastrar fornecedor e lançar cotação por item; total calculado automaticamente.
 - [ ] Tela de comparação mostra todos os fornecedores lado a lado com subtotal e melhor valor corretos.
-- [ ] Exportar PDF (comparação) e XLS a partir de um mapa com pelo menos 2 fornecedores cotando.
+- [ ] Exportar PDF (comparação) e XLS a partir de um mapa com pelo menos 3 fornecedores cotando (bloquear com mensagem clara se houver menos).
 - [ ] Duplicar um código de item existente no mesmo mapa é bloqueado com mensagem clara.
