@@ -29,3 +29,19 @@ blocos extras que existem no arquivo real mas pertencem ao controle
 orçamentário do Control, não ao Mapa (ligação com centro de
 custo/insumo/saldo disponível, condições comerciais do vencedor, indexador
 INCC/verba meta) — ver `mapas-codificados-briefing.md`.
+
+## Frontend web (`mapas_control/web/`)
+
+Aplicação FastAPI + Jinja2 + htmx (server-rendered, sem SPA/API JSON
+separada) implementando o fluxo Obras → Mapas → detalhe do Mapa (abas
+Itens / Fornecedores & Cotações / Comparação) em cima do mesmo backend
+acima, sem duplicar nenhuma regra de negócio.
+
+```bash
+python -m mapas_control.web.seed             # popula mapas_control.db com dado de exemplo (idempotente)
+uvicorn mapas_control.web.main:app --reload  # http://127.0.0.1:8000
+```
+
+`mapas_control.db` (SQLite on-disk, gitignored) é criado automaticamente no
+primeiro request. Sem autenticação nesta fase — assume que será plugado no
+Control de verdade depois.
