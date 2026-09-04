@@ -60,7 +60,12 @@ CREATE TABLE IF NOT EXISTS cotacao (
 
 
 def conectar(caminho: str = ":memory:") -> sqlite3.Connection:
-    conn = sqlite3.connect(caminho)
+    # check_same_thread=False: cada request da app web abre sua própria
+    # conexão (ver web/deps.py) e a usa do início ao fim de um único
+    # request, mas uma rota `async def` pode executar em thread diferente
+    # da que abriu a conexão via dependência sync — é o padrão documentado
+    # do FastAPI para SQLite. Não há conexão compartilhada entre requests.
+    conn = sqlite3.connect(caminho, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn

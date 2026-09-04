@@ -32,6 +32,23 @@ class Repository:
         self._conn.commit()
         return obra
 
+    def buscar_obra(self, obra_id: str) -> Optional[Obra]:
+        row = self._conn.execute("SELECT * FROM obra WHERE id = ?", (obra_id,)).fetchone()
+        return self._obra_de_row(row) if row is not None else None
+
+    def listar_obras(self) -> list[Obra]:
+        rows = self._conn.execute("SELECT * FROM obra ORDER BY nome").fetchall()
+        return [self._obra_de_row(r) for r in rows]
+
+    @staticmethod
+    def _obra_de_row(r: sqlite3.Row) -> Obra:
+        return Obra(
+            id=r["id"],
+            nome=r["nome"],
+            endereco=r["endereco"],
+            criado_em=datetime.fromisoformat(r["criado_em"]),
+        )
+
     # -- Mapa ------------------------------------------------------------
     def criar_mapa(self, mapa: Mapa) -> Mapa:
         self._conn.execute(
@@ -43,14 +60,25 @@ class Repository:
 
     def buscar_mapa(self, mapa_id: str) -> Optional[Mapa]:
         row = self._conn.execute("SELECT * FROM mapa WHERE id = ?", (mapa_id,)).fetchone()
-        if row is None:
-            return None
+        return self._mapa_de_row(row) if row is not None else None
+
+    def listar_mapas(self, obra_id: Optional[str] = None) -> list[Mapa]:
+        if obra_id is None:
+            rows = self._conn.execute("SELECT * FROM mapa ORDER BY criado_em DESC").fetchall()
+        else:
+            rows = self._conn.execute(
+                "SELECT * FROM mapa WHERE obra_id = ? ORDER BY criado_em DESC", (obra_id,)
+            ).fetchall()
+        return [self._mapa_de_row(r) for r in rows]
+
+    @staticmethod
+    def _mapa_de_row(r: sqlite3.Row) -> Mapa:
         return Mapa(
-            id=row["id"],
-            obra_id=row["obra_id"],
-            nome=row["nome"],
-            status=StatusMapa(row["status"]),
-            criado_em=datetime.fromisoformat(row["criado_em"]),
+            id=r["id"],
+            obra_id=r["obra_id"],
+            nome=r["nome"],
+            status=StatusMapa(r["status"]),
+            criado_em=datetime.fromisoformat(r["criado_em"]),
         )
 
     def atualizar_status_mapa(self, mapa_id: str, status: StatusMapa) -> None:

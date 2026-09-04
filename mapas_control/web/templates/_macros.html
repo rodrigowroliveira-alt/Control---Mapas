@@ -1,0 +1,17 @@
+{% macro status_badge(status) %}
+  {% if status.value == 'fechado' %}
+    <span class="badge badge-success">Fechado</span>
+  {% elif status.value == 'em_cotacao' %}
+    <span class="badge badge-info">Em Cotação</span>
+  {% else %}
+    <span class="badge badge-neutral">Rascunho</span>
+  {% endif %}
+{% endmacro %}
+
+{% macro fornecedores_badge(qtd, minimo=3) %}
+  {% if qtd >= minimo %}
+    <span class="badge badge-success">{{ qtd }}/{{ minimo }} fornecedores</span>
+  {% else %}
+    <span class="badge badge-warning">{{ qtd }}/{{ minimo }} fornecedores</span>
+  {% endif %}
+{% endmacro %}
