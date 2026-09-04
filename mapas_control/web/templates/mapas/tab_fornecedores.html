@@ -1,0 +1,67 @@
+<div class="page-header">
+  <div class="page-subtitle">{{ cotando|length }} fornecedor{{ "es" if cotando|length != 1 else "" }} cotando</div>
+  <details>
+    <summary class="btn btn-primary" style="list-style:none;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      Novo Fornecedor
+    </summary>
+    <form class="inline-form" hx-post="/mapas/{{ mapa_id }}/fornecedores" hx-target="#tab-content" hx-swap="innerHTML" style="margin-top:10px;">
+      <div class="inline-form-title">Novo fornecedor</div>
+      <div class="page-subtitle" style="margin-bottom:12px;">Cadastro reutilizável entre mapas e obras — editável a qualquer momento.</div>
+      <div class="form-grid">
+        <div class="field"><label>Nome</label><input name="nome" required></div>
+        <div class="field"><label>Contato</label><input name="contato"></div>
+        <div class="field"><label>Telefone</label><input name="telefone"></div>
+        <div class="field"><label>E-mail</label><input name="email" type="email"></div>
+        <div class="field"><label>Endereço</label><input name="endereco"></div>
+        <div class="field"><label>Cidade</label><input name="cidade"></div>
+        <div class="field"><label>CNPJ</label><input name="cnpj"></div>
+        <div class="field"><label>Inscrição Estadual</label><input name="inscricao_estadual"></div>
+        <div class="field"><label>Sócio</label><input name="socio"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Salvar Fornecedor</button>
+      </div>
+    </form>
+  </details>
+</div>
+
+{% if disponiveis %}
+  <form class="inline-form" hx-get="/mapas/{{ mapa_id }}/fornecedores/cotacoes" hx-target="#tab-content" hx-swap="innerHTML" hx-trigger="change from:select">
+    <div class="field" style="max-width:360px;">
+      <label>Adicionar fornecedor já cadastrado a este mapa</label>
+      <select name="fornecedor_id">
+        <option value="" selected disabled>Selecionar...</option>
+        {% for f in disponiveis %}<option value="{{ f.id }}">{{ f.nome }}</option>{% endfor %}
+      </select>
+    </div>
+  </form>
+{% endif %}
+
+{% if not cotando %}
+  <div class="empty-state">Nenhum fornecedor cotando neste mapa ainda.</div>
+{% else %}
+  <div class="forn-list">
+    {% for forn in cotando %}
+      <details class="forn-card" {% if forn.id == expandir_fornecedor_id %}open{% endif %}>
+        <summary class="forn-summary">
+          <div class="forn-info">
+            <div class="forn-avatar">{{ (forn.nome.split(" ")[:2] | map('first') | join("")) | upper }}</div>
+            <div>
+              <div class="forn-name">{{ forn.nome }}</div>
+              <div class="forn-contact">{{ forn.contato or "" }}{% if forn.telefone %} · {{ forn.telefone }}{% endif %}{% if forn.cidade %} · {{ forn.cidade }}{% endif %}</div>
+            </div>
+          </div>
+          <span style="font-size:12.5px; font-weight:600; color:var(--accent);">{{ "R$ %.2f"|format(totais.get(forn.id, 0.0)) }}</span>
+        </summary>
+        <div class="forn-body">
+          <div style="margin-bottom:10px;">
+            <a href="#" hx-get="/mapas/{{ mapa_id }}/fornecedores/{{ forn.id }}/editar" hx-target="#tab-content" hx-swap="innerHTML">Editar dados de contato</a>
+          </div>
+          {% set cotacoes = cotacoes_por_fornecedor.get(forn.id, {}) %}
+          {% include "mapas/_cotacao_editor_conteudo.html" %}
+        </div>
+      </details>
+    {% endfor %}
+  </div>
+{% endif %}

@@ -1,0 +1,76 @@
+<div class="comp-toolbar">
+  <span class="comp-status {{ 'blocked' if bloqueado else 'ok' }}">
+    {{ qtd_fornecedores }} de 3 fornecedores {{ 'necessários' if bloqueado else '— liberado' }}
+  </span>
+  <div style="display:flex; gap:8px;">
+    <a class="btn btn-secondary" href="/mapas/{{ mapa_id }}/export/solicitacao-pdf">PDF Solicitação</a>
+    <a class="btn btn-secondary {{ 'is-disabled' if bloqueado else '' }}"
+       {% if not bloqueado %}href="/mapas/{{ mapa_id }}/export/comparacao-pdf"{% endif %}
+       title="{{ 'Disponível a partir de 3 fornecedores cotando' if bloqueado else '' }}">PDF Comparação</a>
+    <a class="btn btn-secondary {{ 'is-disabled' if bloqueado else '' }}"
+       {% if not bloqueado %}href="/mapas/{{ mapa_id }}/export/comparacao-xlsx"{% endif %}
+       title="{{ 'Disponível a partir de 3 fornecedores cotando' if bloqueado else '' }}">Exportar XLS</a>
+    <button class="btn {{ 'btn-secondary is-disabled' if bloqueado else 'btn-primary' }}"
+       hx-post="/mapas/{{ mapa_id }}/fechar" hx-target="#tab-content" hx-swap="innerHTML"
+       {% if bloqueado %}disabled{% endif %}>Fechar Mapa</button>
+  </div>
+</div>
+
+{% if bloqueado %}
+  <div class="banner-warning">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+    <div><strong>Faltam {{ faltam }} fornecedor(es)</strong> para liberar a exportação da comparação e o fechamento deste mapa — mínimo de 3 fornecedores cotando.</div>
+  </div>
+{% endif %}
+
+<div class="comp-scroll">
+  <table class="comparacao">
+    <thead>
+      <tr>
+        <th class="left" rowspan="2">Código</th>
+        <th class="left" rowspan="2">Descrição</th>
+        <th rowspan="2">Unid.</th>
+        <th rowspan="2">Qtd. Ref.</th>
+        {% for f in comparacao.fornecedores %}
+          <th colspan="3" class="col-fixed-border">{{ f.nome }}</th>
+        {% endfor %}
+      </tr>
+      <tr>
+        {% for f in comparacao.fornecedores %}
+          <th class="col-fixed-border">Quant.</th><th>Custo Unit.</th><th>Total</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for linha in comparacao.linhas %}
+        <tr>
+          <td class="left mono">{{ linha.item.codigo }}</td>
+          <td class="left">{{ linha.item.descricao }}</td>
+          <td>{{ linha.item.unidade }}</td>
+          <td>{{ linha.item.quantidade_referencia if linha.item.quantidade_referencia is not none else "—" }}</td>
+          {% for f in comparacao.fornecedores %}
+            {% set cot = linha.cotacoes_por_fornecedor.get(f.id) %}
+            {% set melhor = f.id == linha.melhor_fornecedor_id %}
+            <td class="col-fixed-border {{ 'melhor' if melhor else '' }}">{{ cot.quantidade if cot else "" }}</td>
+            <td class="{{ 'melhor' if melhor else '' }}">{{ "R$ %.2f"|format(cot.preco_unitario) if cot else "" }}</td>
+            <td class="{{ 'melhor' if melhor else '' }}">{{ "R$ %.2f"|format(cot.total) if cot else "" }}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td class="left" colspan="4">Subtotal</td>
+        {% for f in comparacao.fornecedores %}
+          <td class="col-fixed-border"></td><td></td>
+          <td>{{ "R$ %.2f"|format(comparacao.subtotal_por_fornecedor.get(f.id, 0.0)) }}</td>
+        {% endfor %}
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<div class="legend">
+  <div class="swatch"></div>
+  Melhor valor por item (menor total entre quem cotou) · células em branco = fornecedor não cotou este item
+</div>

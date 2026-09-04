@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badge %}
+{% block titulo %}{{ mapa.nome }} — Control{% endblock %}
+{% block breadcrumb %}
+  <div class="breadcrumb">
+    <a href="/obras">Obras</a>
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    <a href="/obras/{{ obra.id }}/mapas">{{ obra.nome }}</a>
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    <span class="current">{{ mapa.nome }}</span>
+  </div>
+{% endblock %}
+{% block content %}
+  <div class="page-header" style="margin-bottom:0;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <h1 class="page-title">{{ mapa.nome }}</h1>
+      {{ status_badge(mapa.status) }}
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab-link active" data-tab="itens"
+      hx-get="/mapas/{{ mapa.id }}/tabs/itens" hx-target="#tab-content" hx-swap="innerHTML"
+      onclick="document.querySelectorAll('.tab-link').forEach(b=>b.classList.remove('active'));this.classList.add('active');">
+      Itens
+    </button>
+    <button class="tab-link" data-tab="fornecedores"
+      hx-get="/mapas/{{ mapa.id }}/tabs/fornecedores" hx-target="#tab-content" hx-swap="innerHTML"
+      onclick="document.querySelectorAll('.tab-link').forEach(b=>b.classList.remove('active'));this.classList.add('active');">
+      Fornecedores &amp; Cotações
+    </button>
+    <button class="tab-link" data-tab="comparacao"
+      hx-get="/mapas/{{ mapa.id }}/tabs/comparacao" hx-target="#tab-content" hx-swap="innerHTML"
+      onclick="document.querySelectorAll('.tab-link').forEach(b=>b.classList.remove('active'));this.classList.add('active');">
+      Comparação
+    </button>
+  </div>
+
+  <div id="tab-content" hx-get="/mapas/{{ mapa.id }}/tabs/itens" hx-trigger="load" hx-swap="innerHTML"></div>
+{% endblock %}

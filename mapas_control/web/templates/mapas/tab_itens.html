@@ -1,0 +1,58 @@
+<div class="page-header">
+  <div class="page-subtitle">{{ itens|length }} item{{ "s" if itens|length != 1 else "" }} cadastrado{{ "s" if itens|length != 1 else "" }}</div>
+  <details {% if valores %}open{% endif %}>
+    <summary class="btn btn-primary" style="list-style:none;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      Adicionar Item
+    </summary>
+    <form class="inline-form" hx-post="/mapas/{{ mapa_id }}/itens" hx-target="#tab-content" hx-swap="innerHTML" style="margin-top:10px;">
+      <div class="form-grid">
+        <div class="field {% if erro %}has-error{% endif %}">
+          <label>Código</label>
+          <input name="codigo" required value="{{ valores.codigo if valores else '' }}">
+        </div>
+        <div class="field">
+          <label>Descrição</label>
+          <input name="descricao" required value="{{ valores.descricao if valores else '' }}">
+        </div>
+        <div class="field">
+          <label>Unidade</label>
+          <input name="unidade" required value="{{ valores.unidade if valores else '' }}" placeholder="unid, m, m²...">
+        </div>
+        <div class="field">
+          <label>Qtd. Referência</label>
+          <input name="quantidade_referencia" type="number" step="any" value="{{ valores.quantidade_referencia if valores else '' }}">
+        </div>
+      </div>
+      {% if erro %}
+        <div class="form-error">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          {{ erro }}
+        </div>
+      {% endif %}
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Salvar</button>
+      </div>
+    </form>
+  </details>
+</div>
+
+{% if not itens %}
+  <div class="empty-state">Nenhum item cadastrado ainda.</div>
+{% else %}
+  <table class="simple">
+    <thead>
+      <tr><th>Código</th><th>Descrição</th><th>Unidade</th><th>Qtd. Referência</th></tr>
+    </thead>
+    <tbody>
+      {% for item in itens %}
+        <tr>
+          <td class="codigo">{{ item.codigo }}</td>
+          <td>{{ item.descricao }}</td>
+          <td>{{ item.unidade }}</td>
+          <td>{{ item.quantidade_referencia if item.quantidade_referencia is not none else "—" }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}

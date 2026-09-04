@@ -1,0 +1,22 @@
+<form hx-post="/mapas/{{ mapa_id }}/fornecedores/{{ forn.id }}/cotacoes" hx-target="#tab-content" hx-swap="innerHTML">
+  <table class="cotacao-editor-table">
+    <thead>
+      <tr><th>Item</th><th>Quantidade</th><th>Custo Unit.</th><th>Total</th></tr>
+    </thead>
+    <tbody>
+      {% for item in itens %}
+        {% set cot = cotacoes.get(item.id) %}
+        <tr>
+          <td class="mono">{{ item.codigo }}</td>
+          <td><input type="number" step="any" name="quantidade_{{ item.id }}" value="{{ cot.quantidade if cot else '' }}"></td>
+          <td><input type="number" step="any" name="preco_unitario_{{ item.id }}" value="{{ cot.preco_unitario if cot else '' }}"></td>
+          <td><span class="cotacao-total-readonly">{{ "R$ %.2f"|format(cot.total) if cot else "—" }}</span></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="form-actions" style="margin-top:10px; align-items:center;">
+    <span class="page-subtitle" style="flex:1;">Total calculado automaticamente — nunca digitado.</span>
+    <button class="btn btn-primary" type="submit">Salvar Cotação</button>
+  </div>
+</form>
